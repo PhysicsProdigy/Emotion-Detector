@@ -1,5 +1,5 @@
 from tensorflow.keras.models import model_from_json
-from tensorflow.python.keras.backend import set_session
+from tensorflow.compat.v1.keras.backend import set_session
 import numpy as np
 
 import tensorflow as tf
@@ -7,18 +7,19 @@ import tensorflow as tf
 gpus = tf.config.experimental.list_physical_devices('GPU')
 tf.config.experimental.set_memory_growth(gpus[0], True)
 
+
 config = tf.compat.v1.ConfigProto()
-config.gpu_options.per_process_gpu_memory_fraction = 0.15
+config.gpu_options.per_process_gpu_memory_fraction = 0.8
 session = tf.compat.v1.Session(config=config)
 set_session(session)
 
 
 class FacialExpressionModel(object):
 
-    EMOTIONS_LIST = ["Angry", "Disgust",
-                     "Fear", "Happy",
-                     "Neutral", "Sad",
-                     "Surprise"]
+    EMOTIONS_LIST = ["angry", "disgust",
+                     "fear", "happy",
+                     "neutral", "sad",
+                     "surprise"]
 
     def __init__(self, model_json_file, model_weights_file):
         # load model from JSON file

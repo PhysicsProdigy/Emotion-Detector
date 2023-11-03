@@ -13,16 +13,17 @@ config = tf.compat.v1.ConfigProto( device_count = {'GPU': 0 , 'CPU': 56} ) #max:
 sess = tf.compat.v1.Session(config=config)
 tf.compat.v1.keras.backend.set_session(sess)
 
-gpus = tf.config.experimental.list_physical_devices('GPU')
+gpus = tf.config.list_physical_devices('GPU')
 if gpus:
+  # Restrict TensorFlow to only allocate 1GB of memory on the first GPU
   try:
-    # Currently, memory growth needs to be the same across GPUs
-    for gpu in gpus:
-      tf.config.experimental.set_memory_growth(gpu, True)
-    logical_gpus = tf.config.experimental.list_logical_devices('GPU')
+    tf.config.set_logical_device_configuration(
+        gpus[0],
+        [tf.config.LogicalDeviceConfiguration(memory_limit=4000)])
+    logical_gpus = tf.config.list_logical_devices('GPU')
     print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPUs")
   except RuntimeError as e:
-    # Memory growth must be set before GPUs have been initialized
+    # Virtual devices must be set before GPUs have been initialized
     print(e)
 
 
@@ -88,7 +89,7 @@ model.add(Activation('relu'))
 
 model.add(Dense(7, activation='softmax'))
 
-opt = Adam(lr=0.0005)
+opt = Adam(learning_rate=0.0005)
 model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
 
 #Evaluating and training model
@@ -98,9 +99,9 @@ validation_steps = validation_generator.n//validation_generator.batch_size
 
 reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.1,
                               patience=2, min_lr=0.00001, mode='auto')
-checkpoint = ModelCheckpoint("model_weights.h5", monitor='val_accuracy',
+checkpoint = ModelCheckpoint("CNN_Weights.h5", monitor='val_accuracy',
                              save_weights_only=True, mode='max', verbose=1)
-callbacks = [PlotLossesKerasTF(),checkpoint, reduce_lr, ]
+callbacks = [PlotLossesKerasTF(),checkpoint, reduce_lr]
 
 history = model.fit(
     train_generator,
@@ -110,9 +111,10 @@ history = model.fit(
     validation_steps = validation_steps,
     callbacks=callbacks
 )
+
 #Save model into a JSON file.
 model_json = model.to_json()
-with open("model.json", "w") as json_file:
+with open("CNN.json", "w") as json_file:
     json_file.write(model_json)
     print("Sucess!")
 

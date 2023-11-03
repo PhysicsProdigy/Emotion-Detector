@@ -3,7 +3,7 @@ from model import FacialExpressionModel
 import numpy as np
 
 facec = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
-model = FacialExpressionModel("model.json", "model_weights.h5")
+model = FacialExpressionModel("resNet50.json", "resNet50_Weights.h5")
 font = cv2.FONT_HERSHEY_SIMPLEX
 
 
@@ -20,7 +20,8 @@ class VideoCamera(object):
         for (x, y, w, h) in faces:
             fc = gray_fr[y:y + h, x:x + w]
 
-            roi = cv2.resize(fc, (48, 48))
+            #Size needs to be 64,64 when using resnet / 48,48 when using CNN
+            roi = cv2.resize(fc, (64, 64))
 
             pred = model.predict_emotion(roi[np.newaxis, :, :, np.newaxis])
 
